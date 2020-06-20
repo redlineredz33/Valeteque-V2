@@ -1,0 +1,8 @@
+type Ticket @model @searchable{
+  id: ID!
+  make: String
+  model: String
+  processed: Boolean!
+  createdAt: String
+  updatedAt: String
+}

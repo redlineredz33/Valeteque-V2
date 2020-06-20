@@ -1,0 +1,20 @@
+{
+    "dev": {
+        "awscloudformation": {
+            "AuthRoleName": "amplify-valeteque-dev-170348-authRole",
+            "UnauthRoleArn": "arn:aws:iam::235137111391:role/amplify-valeteque-dev-170348-unauthRole",
+            "AuthRoleArn": "arn:aws:iam::235137111391:role/amplify-valeteque-dev-170348-authRole",
+            "Region": "us-west-2",
+            "DeploymentBucketName": "amplify-valeteque-dev-170348-deployment",
+            "UnauthRoleName": "amplify-valeteque-dev-170348-unauthRole",
+            "StackName": "amplify-valeteque-dev-170348",
+            "StackId": "arn:aws:cloudformation:us-west-2:235137111391:stack/amplify-valeteque-dev-170348/b289e2c0-a9e4-11ea-b216-0633c0d6fb32",
+            "AmplifyAppId": "d2zawoea1zujz2"
+        },
+        "categories": {
+            "auth": {
+                "valeteque727b698d": {}
+            }
+        }
+    }
+}
