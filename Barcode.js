@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Alert, Dimensions, KeyboardAvoidingView} from 'react-native';
+import { StyleSheet, Alert, Dimensions, BackHandler } from 'react-native';
 import { API, graphqlOperation } from "aws-amplify";
 import { createTicket } from './src/graphql/mutations';
 import BarcodeMask from 'react-native-barcode-mask';
 import { Camera } from 'expo-camera';
-import { View, Item, Icon, Label, Button, Input, Text} from 'native-base';
-
+import { TextInput } from 'react-native-paper';
+import { View, Item, Icon, Text} from 'native-base';
+import {  Avatar } from 'react-native-elements';
+import Modal, { ModalContent, ModalFooter, ModalButton } from 'react-native-modals';
+import moment from 'moment';
 
 export default function Barcode() {
 
@@ -14,13 +17,17 @@ export default function Barcode() {
   const [barcode, setBarcode] = useState('Enter ticket number');
   const [carMake, setCarMake] = useState("");
   const [carModel, setCarModel] = useState("");
+  const [showMe, setShowMe] = useState(false);
 
   useEffect(() => {
     (async () => {
       const { status } = await Camera.requestPermissionsAsync();
       setHasPermission(status === 'granted');
-    })()
+    })
+
   }, []);
+
+
 
   addTicket = async (stateData,make,model) => {
     try{
@@ -38,7 +45,7 @@ export default function Barcode() {
         "Success",
         'Ticket #' + barcode.toString() +' added successfully.',
         [
-          { text: "OK" }
+          { text: "OK", onPress: () => setScanned(false) }
         ],
         { cancelable: false }
         )
@@ -49,7 +56,7 @@ export default function Barcode() {
         "Error",
         "There was a problem adding the requested ticket because it has already been added or processed. Please try again.",
         [
-          { text: "OK" }
+          { text: "OK", onPress: () => setScanned(false)}
         ],
         { cancelable: false }
         );
@@ -59,53 +66,67 @@ export default function Barcode() {
   const handleBarCodeScanned = ({ data }) => {
     setScanned(true);
     setBarcode(data);
+    setShowMe(true);
   };
 
+
   return (
-    <KeyboardAvoidingView style={{ flex:1 }}>
-    <View style={{ flex: 1 }}>
+    <View style={{ flex:1 }}>
+    <View style={{ flex:1 }}>
       <Camera
         onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
         style={StyleSheet.absoluteFillObject, styles.cameraContainer}
       />
-      <BarcodeMask width={300} height={150} lineAnimationDuration={1000}/>
+      <BarcodeMask width={300} height={150} lineAnimationDuration={1000} showAnimatedLine={false}/>
       <Text style={{ fontSize:30, color:'white' }}>Scan Barcode</Text>
     </View>
-    <View style={styles.lowerSection}>
-    <Item>
-        <Label>Add Ticket Information</Label> 
-    </Item>
-    <Item>
-        <Icon type={"Ionicons"} active name='md-barcode' />
-        <Input
-            placeholder='Barcode of the item'
-            value={barcode.toString()}
-        />    
-    </Item>
-    <Item>
-        <Icon type={"Ionicons"} active name='md-barcode' />
-        <Input
+   <View>
+   <Modal.BottomModal
+      visible={showMe}
+		  animationDuration={500}
+      overlayOpacity={0.8}
+      onHardwareBackPress={() => setShowMe(false) }
+    >
+        <ModalContent
+          style={{
+          backgroundColor: 'fff',
+			    bottom: 0,
+          padding:300,
+          height:420
+          }}
+        >
+        <Avatar rounded source= {require('./assets/images/cars/key.jpg')} size='large' left={'40%'} />  
+			  <Text style= {{ fontSize:40, color:'#693e94', textAlign:'center',  letterSpacing: -3, bottom:0 }}>TICKET NUMBER</Text>
+			  <Text style= {{ fontSize:40, color:'#693e94', textAlign:'center',  letterSpacing: -5, bottom:0 }}>{barcode}</Text>
+         
+          <TextInput
+            mode='outlined'
             placeholder='Vehicle Make (Optional)'
             onChangeText={text => setCarMake(text)}
-            value={carMake}
-        />    
-    </Item>
-    <Item>
-        <Icon type={"Ionicons"} active name='md-barcode' />
-        <Input
+          />    
+        
+          <TextInput
+            mode='outlined'
             placeholder='Vehicle Model (Optional)'
             onChangeText={text => setCarModel(text)}
-            value={carModel}
-        />    
-    </Item>
-    <Button
-        primary
-        onPress={() => {this.addTicket(barcode,carMake,carModel)}}
-    >
-      <Text>Add ticket</Text>
-    </Button>
+          />    
+       
+        <Text style= {{ fontSize:13, color:'gray', letterSpacing: 0 }}>{'\n'}This key will be added to the system on {moment(new Date()).format("MMM DD, YYYY h:mm A")}
+        </Text>
+        
+        </ModalContent>
+
+		  	<ModalFooter>
+			    <ModalButton
+				    text="ADD TICKET"
+				    textStyle={{color:'#F95959', fontSize:20}}
+            onPress={() => {setShowMe(false), this.addTicket(barcode,carMake,carModel)} }
+            key="button-1"
+          />
+        </ModalFooter>
+    </Modal.BottomModal>
   </View>
-  </KeyboardAvoidingView>
+  </View>
   )
 }
 
@@ -121,12 +142,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-    lowerSection: {
-        paddingVertical: 60,
-        paddingHorizontal: 20,
-        backgroundColor: 'white',
-    },
-    camera: {
-        height: '100%',
-    },
+  lowerSection: {
+    paddingVertical: 60,
+    paddingHorizontal: 20,
+    backgroundColor: 'white',
+  },
+  camera: {
+    height: '100%',
+  },
 });
