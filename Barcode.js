@@ -86,7 +86,7 @@ export default function Barcode() {
 		  animationDuration={500}
       overlayOpacity={0.8}
       onHardwareBackPress={() => setShowMe(false) }
-      onTouchOutside={() => {setShowMe(false),setScanned(false)}}
+      onTouchOutside={() => setShowMe(false)}
     >
         <ModalContent
           style={{
