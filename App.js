@@ -1,16 +1,15 @@
 import React from 'react';
 import { withAuthenticator, AmplifyTheme } from "aws-amplify-react-native"
-import { SafeAreaView, Image, View, Alert, ScrollView, StyleSheet, Dimensions ,YellowBox, TouchableHighlight, Text,KeyboardAvoidingView } from 'react-native';
+import { SafeAreaView, Image, View, Alert, ScrollView, StyleSheet, Dimensions ,YellowBox, TouchableHighlight, Text ,KeyboardAvoidingView } from 'react-native';
 import { createAppContainer } from 'react-navigation';
 import { createStackNavigator } from 'react-navigation-stack';
 import { createBottomTabNavigator } from 'react-navigation-tabs';
 import FontAwesome from "react-native-vector-icons/FontAwesome";
-import { ListItem, Input, Button, Avatar } from 'react-native-elements';
+import { ListItem, Avatar } from 'react-native-elements';
 import logo from './assets/splash.png';
 import TouchableScale from 'react-native-touchable-scale';
-import { Searchbar } from 'react-native-paper';
+import { Searchbar, TextInput } from 'react-native-paper';
 import PieChart from 'react-native-pie-chart';
-import { LinearGradient } from 'react-native-linear-gradient';
 import { TouchableOpacity, TouchableNativeFeedback } from 'react-native-gesture-handler';
 import ScrollBottomSheet from 'react-native-scroll-bottom-sheet';
 import { API, graphqlOperation } from "aws-amplify";
@@ -19,12 +18,7 @@ import { createTicket } from './src/graphql/mutations';
 import * as subscriptions from "./src/graphql/subscriptions";
 import * as mutations from "./src/graphql/mutations";
 import Loader from './Loader';
-import Modal, {
-	ModalContent,
-	ModalFooter,
-	ModalButton
-  } from 'react-native-modals';
-
+import Modal, { ModalContent, ModalFooter, ModalButton} from 'react-native-modals';
 
 import Barcode from './Barcode';
 import moment from "moment";
@@ -66,7 +60,9 @@ class MainScreen extends React.Component {
 			processed: false,
 			loading: false,
 			showMe: false,
-			modalData: 0
+			showAddTicket:false,
+			showUpdateTicket:false,
+			modalData: 0,
 		}
 	}
 
@@ -90,14 +86,13 @@ class MainScreen extends React.Component {
 			}
 		}))
 		this.setState({ tickets: ticketData.data.listTickets.items })
-		this.setState({data:this.state.tickets});
+		this.setState({ data:this.state.tickets });
 	}
 
 	componentDidMount = async () => {
 		this.getTickets();
 		this.createSubscription = API.graphql(graphqlOperation(subscriptions.onCreateTicket)).subscribe(() => this.getTickets());
 		this.updateSubscription = API.graphql(graphqlOperation(subscriptions.onUpdateTicket)).subscribe(() => this.getTickets());
-		
 	}
 
 	componentWillUnmount = async () => {
@@ -106,7 +101,43 @@ class MainScreen extends React.Component {
 	}
 
 	updateTicket = async (itemId) => {
+		try{
 		await API.graphql(graphqlOperation(mutations.updateTicket, {input: { id:itemId, processed:true }}))
+		}
+		catch(e){
+			Alert.alert(
+				"Error",
+				"There was a problem processing the requested ticket. Please try again.",
+				[
+				  { text: "OK"}
+				],
+				{ cancelable: false }
+				);
+		}
+	}
+
+	updateTicketDetails = async (id, make, model) => {
+		try{
+		await API.graphql(graphqlOperation(mutations.updateTicket, {input: {id:id, make:make, model:model} }))
+			Alert.alert(
+				"Success",
+				"Ticket #" + id.toString() + " has been updated successfully.",
+				[
+			  	{ text: "OK"}
+				],
+				{ cancelable: false }
+				);
+		}
+		catch(e){
+			Alert.alert(
+				"Error",
+				"There was a problem updating the requested ticket. Please try again.",
+				[
+				  { text: "OK"}
+				],
+				{ cancelable: false }
+				);
+		}
 	}
 
 	deleteItemById = (itemId) => {
@@ -119,7 +150,7 @@ class MainScreen extends React.Component {
 		<ListItem style={styles.item}
 				title={'To add a ticket'}
 				titleStyle= {{ fontSize:30, alignSelf:'center' }}
-				subtitle={'please press barcode icon'}
+				subtitle={'please press barcode icon or add ticket icon'}
 				subtitleStyle={{alignSelf:'center'}}
 				style={{ alignContent:'center' }}
 		/>
@@ -159,6 +190,51 @@ class MainScreen extends React.Component {
 			dateDelta: moment.duration(moment().diff(item.createdAt)).humanize()
 		});
 	}
+
+	passDataToUpdateModal=(item)=>{
+		this.setState({
+			updateTicketNum: item.id,
+			updateMake:item.make,
+			updateModel:item.model,
+			lastUpdate:item.updatedAt,
+			showUpdateTicket: true,
+		});
+	}
+
+	addTicket = async (stateData,make,model) => {
+		try{
+		  await API.graphql(graphqlOperation(createTicket,{ 
+			input: {
+			  id:stateData, 
+			  make:make, 
+			  model:model, 
+			  processed:false
+			}
+		  }
+		  ))
+	
+		  Alert.alert(
+			"Success",
+			'Ticket #' + stateData.toString() +' added successfully.',
+			[
+			  { text: "OK", onPress: () => this.setState({showAddTicket:false})}
+			],
+			{ cancelable: false }
+			)
+		}
+	
+		catch(e){
+		  Alert.alert(
+			"Error",
+			"There was a problem adding the requested ticket because it has already been added or processed. Please try again.",
+			[
+			  { text: "OK", onPress: () => this.setState({showAddTicket:false})}
+			],
+			{ cancelable: false }
+			);
+		  }
+	  }
+
 	
 	render() {
 	return(	
@@ -186,7 +262,7 @@ class MainScreen extends React.Component {
 			ListEmptyComponent={this.renderEmptyContainer()}
 			data= { this.state.data }
 			renderItem={({ item }) => 			
-				<TouchableOpacity onPress = {()=> { this.passDataToModal(item) }}>
+				<TouchableOpacity onPress = {()=> { this.passDataToModal(item)}} onLongPress= {() => {this.passDataToUpdateModal(item)}} >
 				<ListItem style={styles.item}
 					Component = { TouchableScale } 
 					friction={80} 
@@ -224,10 +300,9 @@ class MainScreen extends React.Component {
 			<Avatar rounded source= {require('./assets/images/cars/key.jpg')} size='large' left={'40%'} />
 
 			<Text style= {{ fontSize:40, color:'#693e94', textAlign:'center',  letterSpacing: -3, bottom:0 }}>TICKET NUMBER</Text>
-			<Text style= {{ fontSize:70, color:'#693e94', textAlign:'center',  letterSpacing: -5, bottom:0 }}>{this.state.modalData.id}</Text>
-			<Text style= {{ fontSize:15, color:'gray', textAlign:'center', letterSpacing: 0, bottom:0 }}>This ticket was added on {this.state.dateInfo}.</Text>
+			<Text style= {{ fontSize:50, color:'#693e94', textAlign:'center',  letterSpacing: -5, bottom:0 }}>{this.state.modalData.id}</Text>
+			<Text style= {{ fontSize:15, color:'gray', textAlign:'center', letterSpacing: 0, bottom:0 }}>{'\n'}This ticket was added on {this.state.dateInfo}.</Text>
 			<Text style= {{ fontSize:15, color:'gray', textAlign:'center', letterSpacing: 0, bottom:0 }}>Currently, this ticket has been keyed in for {this.state.dateDelta}.</Text>
-			<Text style= {{ fontSize:15, color:'gray', textAlign:'center', letterSpacing: 0, bottom:0 }}>{this.state.modalData.make} {this.state.modalData.model}</Text>
           	</ModalContent>
 
 		  	<ModalFooter>
@@ -252,13 +327,139 @@ class MainScreen extends React.Component {
             </ModalFooter>
         </Modal.BottomModal>
 
+		<Modal.BottomModal
+			visible={this.state.showAddTicket}
+			animationDuration={500}
+			overlayOpacity={0.8}
+			onSwipeOut={() => this.setState({ showAddTicket: false })}
+			onTouchOutside={() => this.setState({ showAddTicket: false })}
+	  	>
+		  <ModalContent
+			style={{
+			backgroundColor: 'fff',
+				  bottom: 0,
+			padding:300,
+			height:420
+			}}
+		  >
+		  <Avatar rounded source= {require('./assets/images/cars/key.jpg')} size='large' left={'40%'} />  
+			
+			<Text style= {{ fontSize:40, color:'#693e94', textAlign:'center',  letterSpacing: -3, bottom:0 }}>ADD TICKET</Text>
+
+			<TextInput
+			  mode='outlined'
+			  placeholder='Ticket Number (Required)'
+			  onChangeText={text => this.setState({id:text})}
+			  value={this.state.id}
+			/> 
+		   
+			<TextInput
+			  mode='outlined'
+			  onChangeText={text => this.setState({make:text})}
+			  label='Vehicle Make (Optional)'
+			/>    
+		  
+			<TextInput
+			  mode='outlined'
+			  onChangeText={text => this.setState({model:text})}
+			  label='Vehicle Model (Optional)'
+			/>    
+		 
+		  <Text style= {{ fontSize:13, color:'gray', letterSpacing: 0 }}>{'\n'}This key will be added to the system on {moment(new Date()).format("MMM DD, YYYY h:mm A")}
+		  </Text>
+		  
+		  </ModalContent>
+  
+				<ModalFooter>
+				<ModalButton
+					text="ADD TICKET"
+					textStyle={{color:'#F95959', fontSize:20}}
+			  		onPress={() => {this.setState({showAddTicket:false}), this.addTicket(this.state.id,this.state.make,this.state.model)} }
+			  		key="button-1"
+				/>
+				<ModalButton
+					text="CANCEL"
+					textStyle={{color:'#F95959', fontSize:20}}
+			  		onPress={() => {this.setState({showAddTicket:false})}}
+			  		key="button-2"
+				/>
+		  </ModalFooter>
+	  </Modal.BottomModal>
+
+	  <Modal.BottomModal
+			visible={this.state.showUpdateTicket}
+			animationDuration={500}
+			overlayOpacity={0.8}
+			onSwipeOut={() => this.setState({ showUpdateTicket: false })}
+			onTouchOutside={() => this.setState({ showUpdateTicket: false })}
+	  	>
+		  <ModalContent
+			style={{
+			backgroundColor: 'fff',
+				  bottom: 0,
+			padding:300,
+			height:420
+			}}
+		  >
+		  <Avatar rounded source= {require('./assets/images/cars/key.jpg')} size='large' left={'40%'} />  
+			
+			<Text style= {{ fontSize:40, color:'#693e94', textAlign:'center',  letterSpacing: -3, bottom:0 }}>UPDATE TICKET</Text>
+
+			<TextInput
+			  mode='outlined'
+			  placeholder='Ticket Number (Required)'
+			  value={this.state.updateTicketNum}
+			/> 
+		   
+			<TextInput
+			  mode='outlined'
+			  onChangeText={text => this.setState({updateMake:text})}
+			  label='Vehicle Make (Optional)'
+			  value={this.state.updateMake}
+			/>    
+		  
+			<TextInput
+			  mode='outlined'
+			  onChangeText={text => this.setState({updateModel:text})}
+			  label='Vehicle Model (Optional)'
+			  value={this.state.updateModel}
+			/>    
+
+		<Text style= {{ fontSize:13, color:'gray', letterSpacing: 0 }}>{'\n'}This ticket was last updated on {moment(this.state.lastUpdate).format("MMM DD, YYYY h:mm:ss A")}.</Text>
+				  
+		  </ModalContent>
+  
+				<ModalFooter>
+	
+				<ModalButton
+					text="CANCEL"
+					textStyle={{color:'#F95959', fontSize:20}}
+			  		onPress={() => {this.setState({showUpdateTicket:false})}}
+			  		key="button-1"
+				/>
+								<ModalButton
+					text="UPDATE TICKET"
+					textStyle={{color:'#F95959', fontSize:20}}
+			  		onPress={() => {this.setState({showUpdateTicket:false}), this.updateTicketDetails(this.state.updateTicketNum, this.state.updateMake, this.state.updateModel)}}
+			  		key="button-2"
+				/>
+		  </ModalFooter>
+	  </Modal.BottomModal>
+
 		</View>
   
 		<View>
-
+		<TouchableHighlight style={styles.addButton2}
+		  underlayColor= '#FFF' 
+		  activeOpacity={.4}
+		  onPress={() => {this.setState({showAddTicket:true})}}
+		>
+		<Text style={{ fontSize:60, color:'white' }}>+</Text>
+		</TouchableHighlight>
 		<TouchableHighlight style={styles.addButton}
-		  underlayColor= '#F95959' 
-		  onPress={() => {this.props.navigation.navigate('BarcodeScanner'), this.getLoadingScreen()}}
+		  underlayColor= '#FFF' 
+		  activeOpacity={.4}
+		  onPress={() => {this.props.navigation.navigate('BarcodeScanner')}}
 		>
 		<Image source={require('./assets/icons/barcode.png')} style={{ width:'70%', height:'70%', tintColor:'white' }}></Image>
 		</TouchableHighlight>
@@ -348,7 +549,9 @@ class MainScreen extends React.Component {
 class BarcodeScanner extends React.Component{
 	static navigationOptions = {
 		title: "Barcode Scanner",
-		headerShown: false
+		headerShown: true,
+		headerStyle:{backgroundColor: '#e04a2f'},
+		headerTintColor: 'white'
 	};
 
 
@@ -358,82 +561,6 @@ class BarcodeScanner extends React.Component{
 		);
 	}
 }
-
-	class AddTicket extends React.Component {
-		static navigationOptions = {
-			title: "Add Ticket",
-			headerShown: true,
-			headerStyle:{backgroundColor: '#e04a2f'},
-			headerTintColor: 'white'
-		};
-
-		constructor(){
-			super();
-
-			this.state = {
-				id: 0,
-				make: '',
-				model: '',
-				processed: false,
-				tickets: []
-			}
-		}
-
-		addTicket = async (stateData) => {
-			await API.graphql(graphqlOperation(createTicket,{ 
-			  input: {
-				id:stateData, 
-				make:this.state.make, 
-				model:this.state.model, 
-				processed:this.state.processed
-			  }
-			}
-			))
-		  }
-		
-		render() {
-			id = this.props.navigation.getParams('text','nothing sent');
-		  return (
-			<ScrollView style= {{width:'75%', alignSelf: 'center'}} behavior="padding">
-		
-		<Image source={logo} style={{ alignSelf: 'center', top:'5%', height:(Dimensions.get('screen').height/2), 
-				width:(Dimensions.get('screen').height/2) }}/>
-
-			<Input
-   			placeholder="Ticket Number (Required)"
-			onChangeText={value => this.setState({ id: value })}
-			defaultValue={id}
-  			/>
- 			<Input
-   			placeholder="Make (Optional)"
-   			style={styles}
-   			onChangeText={value => this.setState({ make: value })}
-  			/>
-			<Input
-   			placeholder="Model (Optional)"
-   			style={styles}
-   			onChangeText={value => this.setState({ model: value })}
-  			/>
-		
-			<Button
-				onPress= {() => { API.graphql(graphqlOperation(
-				createTicket,
-				{ input: {
-					id:this.state.id, 
-					make:this.state.make, 
-					model:this.state.model, 
-					processed:this.state.processed
-				}}
-			  	)),this.props.navigation.goBack(null)}}	
-				title='Enter Ticket'
-				raised				
-			/>
-     
-			</ScrollView>
-		  );
-		}
-	  }
-	  
 
 	class ShiftReport extends React.Component{
 		static navigationOptions = {
@@ -556,9 +683,6 @@ class BarcodeScanner extends React.Component{
 		ShiftReport: {
 			screen: ShiftReport
 		},
-		AddTicket: {
-			screen: AddTicket,
-		},
 		BottomTabNavigator: {
 			screen: bottomTabNavigator,
 			navigationOptions: {
@@ -571,16 +695,6 @@ class BarcodeScanner extends React.Component{
 	  }
   );
   
-  const addTicketStyles = StyleSheet.create({
-	container: {
-	  flex: 1,
-	  justifyContent: 'center',
-	},
-	item: { padding: 10 },
-	name: { fontSize: 20 },
-	description: { fontWeight: '600', marginTop: 4, color: 'rgba(0, 0, 0, .5)' },
-	city: { marginTop: 4 }
-  })
 
   const styles = StyleSheet.create({
 	centeredView: {
@@ -715,8 +829,8 @@ class BarcodeScanner extends React.Component{
 		borderRadius: 4
 	},
 	addButton: {
-	  	backgroundColor: '#F95959',
-	  	borderColor: '#F95959',
+	  	backgroundColor: '#e04a2f',
+	  	borderColor: '#e04a2f',
 	  	borderWidth: 1,
 	  	height: 90,
 	  	width: 90,
@@ -724,7 +838,7 @@ class BarcodeScanner extends React.Component{
 	  	alignItems: 'center',
 	  	justifyContent: 'center',
 	 	position: 'absolute',
-	  	bottom: 20,
+	  	bottom:20,
 	  	right:20,
 	  	shadowColor: "#000000",
 	  	shadowOpacity: 5,
@@ -735,6 +849,27 @@ class BarcodeScanner extends React.Component{
 	  	},
 	  	elevation: 5
 	},
+	addButton2: {
+		backgroundColor: '#e04a2f',
+		borderColor: '#e04a2f',
+		borderWidth: 1,
+		height: 90,
+		width: 90,
+		borderRadius: 50,
+		alignItems: 'center',
+		justifyContent: 'center',
+	   position: 'absolute',
+		bottom: 700,
+		right:20,
+		shadowColor: "#000000",
+		shadowOpacity: 5,
+		shadowRadius: 50,
+		shadowOffset: {
+		  height: 10,
+		  width: 0
+		},
+		elevation: 5
+  },
 	header_footer_style: {
 		width: '100%',
 		height: 150,

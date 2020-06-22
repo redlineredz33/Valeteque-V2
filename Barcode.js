@@ -23,7 +23,7 @@ export default function Barcode() {
     (async () => {
       const { status } = await Camera.requestPermissionsAsync();
       setHasPermission(status === 'granted');
-    })
+    })()
 
   }, []);
 
@@ -86,6 +86,7 @@ export default function Barcode() {
 		  animationDuration={500}
       overlayOpacity={0.8}
       onHardwareBackPress={() => setShowMe(false) }
+      onTouchOutside={() => {setShowMe(false),setScanned(false)}}
     >
         <ModalContent
           style={{
