@@ -100,9 +100,14 @@ class MainScreen extends React.Component {
             eq: false,
           },
         },
+        limit: 1000,
       })
     );
-    this.setState({ tickets: ticketData.data.listTickets.items });
+    this.setState({
+      tickets: ticketData.data.listTickets.items.sort(
+        (firstItem, secondItem) => secondItem.id - firstItem.id
+      ),
+    });
     this.setState({ data: this.state.tickets });
   };
 
@@ -279,6 +284,7 @@ class MainScreen extends React.Component {
             style={{ backgroundColor: "white" }}
             enableEmptySections={true}
             componentType="FlatList"
+            removeClippedSubviews={Platform.OS === "android"}
             snapPoints={["15%", windowHeight - 425]}
             initialSnapIndex={1}
             renderHandle={() => (
@@ -492,6 +498,14 @@ class MainScreen extends React.Component {
 
             <ModalFooter>
               <ModalButton
+                text="CANCEL"
+                textStyle={{ color: "#F95959", fontSize: 20 }}
+                onPress={() => {
+                  this.setState({ showAddTicket: false });
+                }}
+                key="button-1"
+              />
+              <ModalButton
                 text="ADD TICKET"
                 textStyle={{ color: "#F95959", fontSize: 20 }}
                 onPress={() => {
@@ -501,14 +515,6 @@ class MainScreen extends React.Component {
                       this.state.make,
                       this.state.model
                     );
-                }}
-                key="button-1"
-              />
-              <ModalButton
-                text="CANCEL"
-                textStyle={{ color: "#F95959", fontSize: 20 }}
-                onPress={() => {
-                  this.setState({ showAddTicket: false });
                 }}
                 key="button-2"
               />
