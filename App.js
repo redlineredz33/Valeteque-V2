@@ -21,7 +21,7 @@ import {
   YellowBox,
   TouchableHighlight,
   Text,
-  KeyboardAvoidingView
+  KeyboardAvoidingView,
 } from "react-native";
 import { createAppContainer } from "react-navigation";
 import { createStackNavigator } from "react-navigation-stack";
@@ -30,7 +30,7 @@ import FontAwesome from "react-native-vector-icons/FontAwesome";
 import { ListItem, Avatar } from "react-native-elements";
 import logo from "./assets/splash.png";
 import TouchableScale from "react-native-touchable-scale";
-import { Searchbar, TextInput } from "react-native-paper";
+import { Searchbar, TextInput, Button } from "react-native-paper";
 import PieChart from "react-native-pie-chart";
 import {
   TouchableOpacity,
@@ -47,6 +47,7 @@ import Modal, {
   ModalFooter,
   ModalButton,
 } from "react-native-modals";
+import { FloatingAction } from "react-native-floating-action";
 
 import Barcode from "./Barcode";
 import moment from "moment";
@@ -338,7 +339,7 @@ class MainScreen extends React.Component {
             visible={this.state.showMe}
             onTouchOutside={() => this.setState({ showMe: false })}
             onSwipeOut={() => this.setState({ showMe: false })}
-            animationDuration={500}
+            animationDuration={300}
             overlayOpacity={0.8}
           >
             <ModalContent
@@ -346,7 +347,7 @@ class MainScreen extends React.Component {
                 backgroundColor: "fff",
                 bottom: 0,
                 padding: 300,
-                height: 320,
+                height: 475,
               }}
             >
               <Avatar
@@ -401,45 +402,47 @@ class MainScreen extends React.Component {
                 Currently, this ticket has been keyed in for{" "}
                 {this.state.dateDelta}.
               </Text>
-            </ModalContent>
 
-            <ModalFooter>
-              <ModalButton
-                text="PAID"
-                textStyle={{ color: "#F95959", fontSize: 20 }}
+              <Button
+                mode="contained"
+                style={{ marginTop: 20, borderRadius: 45 }}
                 onPress={() => {
                   this.setState({ showMe: false }),
                     paidCount++,
                     this.updateTicket(this.state.modalData.id),
                     this.deleteItemById(this.state.modalData.id);
                 }}
-                key="button-1"
-              />
-              <ModalButton
-                text="FREE"
-                textStyle={{ color: "#F95959", fontSize: 20 }}
+              >
+                PAID
+              </Button>
+
+              <Button
+                mode="contained"
+                style={{ marginTop: 10, borderRadius: 45 }}
                 onPress={() => {
                   this.setState({ showMe: false }),
                     freeCount++,
                     this.updateTicket(this.state.modalData.id),
                     this.deleteItemById(this.state.modalData.id);
                 }}
-                key="button-2"
-              />
-              <ModalButton
-                text="CANCEL"
-                textStyle={{ color: "#F95959", fontSize: 20 }}
+              >
+                FREE
+              </Button>
+              <Button
+                mode="contained"
+                style={{ marginTop: 10, borderRadius: 45 }}
                 onPress={() => {
                   this.setState({ showMe: false });
                 }}
-                key="button-3"
-              />
-            </ModalFooter>
+              >
+                CANCEL
+              </Button>
+            </ModalContent>
           </Modal.BottomModal>
 
           <Modal.BottomModal
             visible={this.state.showAddTicket}
-            animationDuration={500}
+            animationDuration={300}
             overlayOpacity={0.8}
             onSwipeOut={() => this.setState({ showAddTicket: false })}
             onTouchOutside={() => this.setState({ showAddTicket: false })}
@@ -449,7 +452,7 @@ class MainScreen extends React.Component {
                 backgroundColor: "fff",
                 bottom: 0,
                 padding: 300,
-                height: 420,
+                height: 530,
               }}
             >
               <Avatar
@@ -494,20 +497,10 @@ class MainScreen extends React.Component {
                 {"\n"}This key will be added to the system on{" "}
                 {moment(new Date()).format("MMM DD, YYYY h:mm A")}
               </Text>
-            </ModalContent>
 
-            <ModalFooter>
-              <ModalButton
-                text="CANCEL"
-                textStyle={{ color: "#F95959", fontSize: 20 }}
-                onPress={() => {
-                  this.setState({ showAddTicket: false });
-                }}
-                key="button-1"
-              />
-              <ModalButton
-                text="ADD TICKET"
-                textStyle={{ color: "#F95959", fontSize: 20 }}
+              <Button
+                mode="contained"
+                style={{ marginTop: 20, borderRadius: 45 }}
                 onPress={() => {
                   this.setState({ showAddTicket: false }),
                     this.addTicket(
@@ -516,14 +509,25 @@ class MainScreen extends React.Component {
                       this.state.model
                     );
                 }}
-                key="button-2"
-              />
-            </ModalFooter>
+              >
+                ADD TICKET
+              </Button>
+
+              <Button
+                mode="contained"
+                style={{ marginTop: 10, borderRadius: 45 }}
+                onPress={() => {
+                  this.setState({ showAddTicket: false });
+                }}
+              >
+                CANCEL
+              </Button>
+            </ModalContent>
           </Modal.BottomModal>
 
           <Modal.BottomModal
             visible={this.state.showUpdateTicket}
-            animationDuration={500}
+            animationDuration={300}
             overlayOpacity={0.8}
             onSwipeOut={() => this.setState({ showUpdateTicket: false })}
             onTouchOutside={() => this.setState({ showUpdateTicket: false })}
@@ -533,7 +537,7 @@ class MainScreen extends React.Component {
                 backgroundColor: "fff",
                 bottom: 0,
                 padding: 300,
-                height: 420,
+                height: 520,
               }}
             >
               <Avatar
@@ -581,20 +585,10 @@ class MainScreen extends React.Component {
                 {moment(this.state.lastUpdate).format("MMM DD, YYYY h:mm:ss A")}
                 .
               </Text>
-            </ModalContent>
 
-            <ModalFooter>
-              <ModalButton
-                text="CANCEL"
-                textStyle={{ color: "#F95959", fontSize: 20 }}
-                onPress={() => {
-                  this.setState({ showUpdateTicket: false });
-                }}
-                key="button-1"
-              />
-              <ModalButton
-                text="UPDATE TICKET"
-                textStyle={{ color: "#F95959", fontSize: 20 }}
+              <Button
+                mode="contained"
+                style={{ marginTop: 20, borderRadius: 45 }}
                 onPress={() => {
                   this.setState({ showUpdateTicket: false }),
                     this.updateTicketDetails(
@@ -603,37 +597,33 @@ class MainScreen extends React.Component {
                       this.state.updateModel
                     );
                 }}
-                key="button-2"
-              />
-            </ModalFooter>
+              >
+                UPDATE TICKET
+              </Button>
+
+              <Button
+                mode="contained"
+                style={{ marginTop: 10, borderRadius: 45 }}
+                onPress={() => {
+                  this.setState({ showUpdateTicket: false });
+                }}
+              >
+                CANCEL
+              </Button>
+            </ModalContent>
           </Modal.BottomModal>
         </View>
 
-        <View>
-          <TouchableHighlight
-            style={styles.addButton2}
-            underlayColor="#FFF"
-            activeOpacity={0.4}
-            onPress={() => {
-              this.setState({ showAddTicket: true });
-            }}
-          >
-            <Text style={{ fontSize: 60, color: "white" }}>+</Text>
-          </TouchableHighlight>
-          <TouchableHighlight
-            style={styles.addButton}
-            underlayColor="#FFF"
-            activeOpacity={0.4}
-            onPress={() => {
+        <FloatingAction
+          actions={actionButtons}
+          onPressItem={(name) => {
+            if (name == "scan_barcode")
               this.props.navigation.navigate("BarcodeScanner");
-            }}
-          >
-            <Image
-              source={require("./assets/icons/barcode.png")}
-              style={{ width: "70%", height: "70%", tintColor: "white" }}
-            ></Image>
-          </TouchableHighlight>
-        </View>
+            if (name == "add_ticket") this.setState({ showAddTicket: true });
+          }}
+          buttonSize={80}
+          color={"#e04a2f"}
+        />
       </SafeAreaView>
     );
   }
@@ -918,6 +908,25 @@ class MyGreetings extends Greetings {
 }
 
 const AppContainer = createAppContainer(screenStackNavigator);
+
+const actionButtons = [
+  {
+    text: "Add Ticket",
+    icon: require("./assets/icons/add_ticket.png"),
+    name: "add_ticket",
+    position: 1,
+    color: "#e04a2f",
+    buttonSize: 60,
+  },
+  {
+    text: "Scan Barcode",
+    icon: require("./assets/icons/barcode.png"),
+    name: "scan_barcode",
+    position: 2,
+    color: "#e04a2f",
+    buttonSize: 60,
+  },
+];
 
 export default withAuthenticator(
   App,
