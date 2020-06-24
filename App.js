@@ -284,7 +284,8 @@ class MainScreen extends React.Component {
             style={{ backgroundColor: "white" }}
             enableEmptySections={true}
             componentType="FlatList"
-            removeClippedSubviews={Platform.OS === "android"}
+            maxToRenderPerBatch={100}
+            windowSize={41}
             snapPoints={["15%", windowHeight - 425]}
             initialSnapIndex={1}
             renderHandle={() => (
