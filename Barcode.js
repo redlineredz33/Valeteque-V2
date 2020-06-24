@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, Alert, Dimensions, BackHandler } from "react-native";
+import { StyleSheet, Alert, Dimensions } from "react-native";
 import { API, graphqlOperation } from "aws-amplify";
 import { createTicket } from "./src/graphql/mutations";
 import BarcodeMask from "react-native-barcode-mask";
 import { Camera } from "expo-camera";
 import { TextInput } from "react-native-paper";
-import { View, Item, Icon, Text } from "native-base";
+import { View, Text } from "native-base";
 import { Avatar } from "react-native-elements";
 import Modal, {
   ModalContent,
@@ -58,7 +58,7 @@ export default function Barcode() {
     }
   };
 
-  const handleBarCodeScanned = ({ data }) => {
+  const handleBarCodeScanned = async ({ data }) => {
     setScanned(true);
     setBarcode(data);
     setShowMe(true);
@@ -71,12 +71,7 @@ export default function Barcode() {
           onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
           style={(StyleSheet.absoluteFillObject, styles.cameraContainer)}
         />
-        <BarcodeMask
-          width={300}
-          height={150}
-          lineAnimationDuration={1000}
-          showAnimatedLine={false}
-        />
+        <BarcodeMask width={300} height={150} showAnimatedLine={false} />
         <Text style={{ fontSize: 30, color: "white" }}>Scan Barcode</Text>
       </View>
       <View>
@@ -164,11 +159,6 @@ const styles = StyleSheet.create({
     width: Dimensions.get("screen").width,
     backgroundColor: "black",
     position: "relative",
-  },
-  rescanIconContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
   },
   lowerSection: {
     paddingVertical: 60,
