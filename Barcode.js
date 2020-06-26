@@ -6,12 +6,9 @@ import BarcodeMask from "react-native-barcode-mask";
 import { Camera } from "expo-camera";
 import { TextInput } from "react-native-paper";
 import { View, Text } from "native-base";
+import { Button } from "react-native-paper";
 import { Avatar } from "react-native-elements";
-import Modal, {
-  ModalContent,
-  ModalFooter,
-  ModalButton,
-} from "react-native-modals";
+import Modal, { ModalContent } from "react-native-modals";
 import moment from "moment";
 
 export default function Barcode() {
@@ -77,7 +74,7 @@ export default function Barcode() {
       <View>
         <Modal.BottomModal
           visible={showMe}
-          animationDuration={500}
+          animationDuration={300}
           overlayOpacity={0.8}
           onHardwareBackPress={() => setShowMe(false)}
           onTouchOutside={() => setShowMe(false)}
@@ -87,7 +84,7 @@ export default function Barcode() {
               backgroundColor: "fff",
               bottom: 0,
               padding: 300,
-              height: 420,
+              height: 450,
             }}
           >
             <Avatar
@@ -135,18 +132,17 @@ export default function Barcode() {
               {"\n"}This key will be added to the system on{" "}
               {moment(new Date()).format("MMM DD, YYYY h:mm A")}
             </Text>
-          </ModalContent>
 
-          <ModalFooter>
-            <ModalButton
-              text="ADD TICKET"
-              textStyle={{ color: "#F95959", fontSize: 20 }}
+            <Button
+              mode="contained"
+              style={{ marginTop: 20, borderRadius: 45 }}
               onPress={() => {
-                setShowMe(false), this.addTicket(barcode, carMake, carModel);
+                setShowMe(false), addTicket(barcode, carMake, carModel);
               }}
-              key="button-1"
-            />
-          </ModalFooter>
+            >
+              ADD TICKET
+            </Button>
+          </ModalContent>
         </Modal.BottomModal>
       </View>
     </View>

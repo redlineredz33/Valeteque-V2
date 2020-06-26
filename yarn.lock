@@ -7315,10 +7315,10 @@ react-native-screens@~2.2.0:
   dependencies:
     debounce "^1.2.0"
 
-react-native-scroll-bottom-sheet@^0.6.1:
-  version "0.6.1"
-  resolved "https://registry.yarnpkg.com/react-native-scroll-bottom-sheet/-/react-native-scroll-bottom-sheet-0.6.1.tgz#7fa6a4f1104417e4e9bf4b10efffc46d501aeeb4"
-  integrity sha512-Glws8msLrbKDW5a53rCeN0pLNI41Yhvz7K7OWZnaVYLs3GPTP2ySYdJ849rd/d5P1P0xqFyKEF/0p+/KLI0nYA==
+react-native-scroll-bottom-sheet@^0.6.2:
+  version "0.6.2"
+  resolved "https://registry.yarnpkg.com/react-native-scroll-bottom-sheet/-/react-native-scroll-bottom-sheet-0.6.2.tgz#f68ea26cb10171ccc8eacf3b917a0e84c7508b82"
+  integrity sha512-VesAAzsv0xxtGKftFVRqbWiB1AaG3YttvilV16rpvbA45z0ow89tG5FZQtznH9ypKVY17O0bFFHocdji7bvZLg==
   dependencies:
     utility-types "^3.10.0"
 

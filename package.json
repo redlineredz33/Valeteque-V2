@@ -58,7 +58,7 @@
     "react-native-reanimated": "~1.7.0",
     "react-native-safe-area-context": "0.7.3",
     "react-native-screens": "~2.2.0",
-    "react-native-scroll-bottom-sheet": "^0.6.1",
+    "react-native-scroll-bottom-sheet": "^0.6.2",
     "react-native-svg": "9.13.6",
     "react-native-tooltip-menu": "^2.0.0",
     "react-native-touchable-scale": "^2.1.1",

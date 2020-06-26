@@ -148,11 +148,11 @@ export const styles = StyleSheet.create({
     textAlign: "center",
   },
   item: {
-    padding: 20,
     justifyContent: "center",
     backgroundColor: "white",
     alignItems: "center",
     marginVertical: 10,
+    zIndex:1000
   },
   header: {
     marginTop: 30,

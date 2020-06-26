@@ -19,9 +19,9 @@ import {
   ScrollView,
   Dimensions,
   YellowBox,
-  TouchableHighlight,
   Text,
   KeyboardAvoidingView,
+  Keyboard,
 } from "react-native";
 import { createAppContainer } from "react-navigation";
 import { createStackNavigator } from "react-navigation-stack";
@@ -33,8 +33,9 @@ import TouchableScale from "react-native-touchable-scale";
 import { Searchbar, TextInput, Button } from "react-native-paper";
 import PieChart from "react-native-pie-chart";
 import {
-  TouchableOpacity,
   TouchableNativeFeedback,
+  TouchableOpacity,
+  TouchableHighlight,
 } from "react-native-gesture-handler";
 import ScrollBottomSheet from "react-native-scroll-bottom-sheet";
 import { API, graphqlOperation } from "aws-amplify";
@@ -42,11 +43,7 @@ import { listTickets } from "./src/graphql/queries";
 import { createTicket } from "./src/graphql/mutations";
 import * as subscriptions from "./src/graphql/subscriptions";
 import * as mutations from "./src/graphql/mutations";
-import Modal, {
-  ModalContent,
-  ModalFooter,
-  ModalButton,
-} from "react-native-modals";
+import Modal, { ModalContent } from "react-native-modals";
 import { FloatingAction } from "react-native-floating-action";
 
 import Barcode from "./Barcode";
@@ -89,6 +86,7 @@ class MainScreen extends React.Component {
       showAddTicket: false,
       showUpdateTicket: false,
       modalData: 0,
+      showFab: true,
     };
   }
 
@@ -267,7 +265,14 @@ class MainScreen extends React.Component {
   render() {
     return (
       <SafeAreaView style={{ flex: 3 }}>
-        <View style={{ flex: 1, backgroundColor: "#EDEDED" }}>
+        <KeyboardAvoidingView
+          style={{
+            flex: 1,
+            backgroundColor: "#EDEDED",
+            position: "relative",
+            zIndex: 1000,
+          }}
+        >
           <KeyboardAvoidingView>
             <Image
               source={logo}
@@ -285,8 +290,9 @@ class MainScreen extends React.Component {
             enableEmptySections={true}
             componentType="FlatList"
             maxToRenderPerBatch={100}
+            keyboardShouldPersistTaps="always"
             windowSize={41}
-            snapPoints={["15%", windowHeight - 425]}
+            snapPoints={["5%", windowHeight - 425]}
             initialSnapIndex={1}
             renderHandle={() => (
               <View style={styles.header}>
@@ -296,16 +302,12 @@ class MainScreen extends React.Component {
             ListEmptyComponent={this.renderEmptyContainer()}
             data={this.state.data}
             renderItem={({ item }) => (
-              <TouchableOpacity
+              <TouchableNativeFeedback
                 onPress={() => {
                   this.passDataToModal(item);
                 }}
-                onLongPress={() => {
-                  this.passDataToUpdateModal(item);
-                }}
               >
                 <ListItem
-                  style={styles.item}
                   Component={TouchableScale}
                   friction={80}
                   tension={100}
@@ -325,10 +327,9 @@ class MainScreen extends React.Component {
                     " " +
                     item.model
                   }
-                  style={styles.listItemStyle}
                   chevron
                 />
-              </TouchableOpacity>
+              </TouchableNativeFeedback>
             )}
             keyExtractor={(item) => item.id}
             extraData={this.state}
@@ -347,7 +348,7 @@ class MainScreen extends React.Component {
                 backgroundColor: "fff",
                 bottom: 0,
                 padding: 300,
-                height: 475,
+                height: 520,
               }}
             >
               <Avatar
@@ -407,10 +408,28 @@ class MainScreen extends React.Component {
                 mode="contained"
                 style={{ marginTop: 20, borderRadius: 45 }}
                 onPress={() => {
-                  this.setState({ showMe: false }),
-                    paidCount++,
-                    this.updateTicket(this.state.modalData.id),
-                    this.deleteItemById(this.state.modalData.id);
+                  Alert.alert(
+                    "Confirm Paid Ticket",
+                    "Are you sure you want to process this ticket as a PAID transaction? You will not be able to reverse this action.",
+                    [
+                      {
+                        text: "Cancel",
+                        cancelable: false,
+                      },
+                      {
+                        text: "Confirm",
+                        onPress: () => {
+                          this.setState({ showMe: false }),
+                            paidCount++,
+                            this.updateTicket(this.state.modalData.id),
+                            this.deleteItemById(this.state.modalData.id);
+                          this.setState({ showFab: true });
+                        },
+                        cancelable: false,
+                      },
+                    ],
+                    { cancelable: false }
+                  );
                 }}
               >
                 PAID
@@ -420,10 +439,28 @@ class MainScreen extends React.Component {
                 mode="contained"
                 style={{ marginTop: 10, borderRadius: 45 }}
                 onPress={() => {
-                  this.setState({ showMe: false }),
-                    freeCount++,
-                    this.updateTicket(this.state.modalData.id),
-                    this.deleteItemById(this.state.modalData.id);
+                  Alert.alert(
+                    "Confirm Free Ticket",
+                    "Are you sure you want to process this ticket as a FREE transaction? You will not be able to reverse this action.",
+                    [
+                      {
+                        text: "Cancel",
+                        cancelable: false,
+                      },
+                      {
+                        text: "Confirm",
+                        onPress: () => {
+                          this.setState({ showMe: false }),
+                            freeCount++,
+                            this.updateTicket(this.state.modalData.id),
+                            this.deleteItemById(this.state.modalData.id);
+                        },
+                        cancelable: false,
+                      },
+                    ],
+                    { cancelable: false }
+                  );
+                  this.setState({ showFab: true });
                 }}
               >
                 FREE
@@ -433,6 +470,19 @@ class MainScreen extends React.Component {
                 style={{ marginTop: 10, borderRadius: 45 }}
                 onPress={() => {
                   this.setState({ showMe: false });
+                  this.passDataToUpdateModal(this.state.modalData);
+                  this.setState({ showUpdateTicket: true });
+                  this.setState({ showFab: true });
+                }}
+              >
+                UPDATE TICKET
+              </Button>
+              <Button
+                mode="contained"
+                style={{ marginTop: 10, borderRadius: 45 }}
+                onPress={() => {
+                  this.setState({ showMe: false });
+                  this.setState({ showFab: true });
                 }}
               >
                 CANCEL
@@ -502,12 +552,14 @@ class MainScreen extends React.Component {
                 mode="contained"
                 style={{ marginTop: 20, borderRadius: 45 }}
                 onPress={() => {
+                  Keyboard.dismiss();
                   this.setState({ showAddTicket: false }),
                     this.addTicket(
                       this.state.id,
                       this.state.make,
                       this.state.model
                     );
+                  this.setState({ showFab: true });
                 }}
               >
                 ADD TICKET
@@ -517,7 +569,9 @@ class MainScreen extends React.Component {
                 mode="contained"
                 style={{ marginTop: 10, borderRadius: 45 }}
                 onPress={() => {
+                  Keyboard.dismiss();
                   this.setState({ showAddTicket: false });
+                  this.setState({ showFab: true });
                 }}
               >
                 CANCEL
@@ -590,12 +644,31 @@ class MainScreen extends React.Component {
                 mode="contained"
                 style={{ marginTop: 20, borderRadius: 45 }}
                 onPress={() => {
-                  this.setState({ showUpdateTicket: false }),
-                    this.updateTicketDetails(
-                      this.state.updateTicketNum,
-                      this.state.updateMake,
-                      this.state.updateModel
-                    );
+                  Keyboard.dismiss();
+                  Alert.alert(
+                    "Confirm Ticket Update",
+                    "Are you sure you want to update this ticket?",
+                    [
+                      {
+                        text: "Cancel",
+                        cancelable: false,
+                      },
+                      {
+                        text: "Update",
+                        onPress: () => {
+                          this.setState({ showUpdateTicket: false }),
+                            this.updateTicketDetails(
+                              this.state.updateTicketNum,
+                              this.state.updateMake,
+                              this.state.updateModel
+                            );
+                        },
+                        cancelable: false,
+                      },
+                    ],
+                    { cancelable: false }
+                  );
+                  this.setState({ showFab: true });
                 }}
               >
                 UPDATE TICKET
@@ -606,24 +679,31 @@ class MainScreen extends React.Component {
                 style={{ marginTop: 10, borderRadius: 45 }}
                 onPress={() => {
                   this.setState({ showUpdateTicket: false });
+                  this.setState({ showFab: true });
                 }}
               >
                 CANCEL
               </Button>
             </ModalContent>
           </Modal.BottomModal>
-        </View>
 
-        <FloatingAction
-          actions={actionButtons}
-          onPressItem={(name) => {
-            if (name == "scan_barcode")
-              this.props.navigation.navigate("BarcodeScanner");
-            if (name == "add_ticket") this.setState({ showAddTicket: true });
-          }}
-          buttonSize={80}
-          color={"#e04a2f"}
-        />
+          <FloatingAction
+            actions={actionButtons}
+            visible={this.state.showFab}
+            onPressItem={(name) => {
+              if (name == "scan_barcode") {
+                this.props.navigation.navigate("BarcodeScanner");
+              }
+              if (name == "add_ticket") {
+                this.setState({ showFab: false });
+                this.setState({ showAddTicket: true });
+              }
+            }}
+            buttonSize={80}
+            color={"#e04a2f"}
+            style={{ position: "absolute" }}
+          />
+        </KeyboardAvoidingView>
       </SafeAreaView>
     );
   }
@@ -689,7 +769,24 @@ class Settings extends React.Component {
               }}
               subtitle={"Click here to log out of Valeteque"}
               onPress={() => {
-                (paidCount = 0), (freeCount = 0), Auth.signOut();
+                Alert.alert(
+                  "Log Out",
+                  "Are you sure you want to log out of the session?",
+                  [
+                    {
+                      text: "Cancel",
+                      cancelable: false,
+                    },
+                    {
+                      text: "Log Out",
+                      onPress: () => {
+                        (paidCount = 0), (freeCount = 0), Auth.signOut();
+                      },
+                      cancelable: false,
+                    },
+                  ],
+                  { cancelable: false }
+                );
               }}
               style={styles.listItemStyle}
               bottomDivider
@@ -873,6 +970,7 @@ const bottomTabNavigator = createBottomTabNavigator(
     initialRouteName: "Home",
     tabBarOptions: {
       activeTintColor: "#e04a2f",
+      keyboardHidesTabBar: "false",
     },
   }
 );
