@@ -20,7 +20,7 @@
     "expo-barcode-scanner": "~8.1.0",
     "expo-camera": "^8.2.0",
     "expo-permissions": "~8.1.0",
-    "moment": "^2.26.0",
+    "moment": "^2.29.4",
     "native": "^0.3.3",
     "native-base": "^2.13.12",
     "numbro": "^2.3.0",
